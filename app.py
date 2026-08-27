@@ -65,10 +65,11 @@ def render_cards(title,subtitle,m,comparison):
  st.markdown(f'<div class="section">{title}</div><div class="card-caption">{subtitle}</div>',unsafe_allow_html=True)
  for col,(a,b,c) in zip(st.columns(len(cards)),cards): col.metric(a,b,c)
 
-up=st.sidebar.file_uploader("Base Excel",type=["xlsx"]); path=Path("Farol.xlsx")
-if up: raw=up.getvalue(); updated=datetime.now()
-elif path.exists(): raw=path.read_bytes(); updated=datetime.fromtimestamp(path.stat().st_mtime)
-else: st.info("Carregue a base Farol.xlsx no menu lateral."); st.stop()
+path=Path("Farol.xlsx")
+if path.exists():
+ raw=path.read_bytes(); updated=datetime.fromtimestamp(path.stat().st_mtime)
+else:
+ st.error("Base não encontrada. Coloque o arquivo 'Farol.xlsx' na raiz do repositório."); st.stop()
 base,nrows,ncols=load_farol(raw); st.markdown(f'<div class="header"><h1>📦 Indicador Forecast x Realizado</h1></div>',unsafe_allow_html=True)
 st.sidebar.markdown("### Filtros"); activity=base.groupby("mes").valor.apply(lambda x:x.abs().sum()); active=activity[activity>0].index.sort_values(); real=base[base.serie=="real"].groupby("mes").valor.sum(); received=real[real>0].index.sort_values(); last=received.max() if len(received) else active.max(); opts=list(active)[::-1]
 period=st.sidebar.selectbox("Período da evolução",["Últimos 3 meses","Últimos 6 meses","Últimos 9 meses","Últimos 12 meses","Livre escolha"],index=3); selected_month=st.sidebar.selectbox("Mês/Ano para os cards",opts,index=opts.index(last),format_func=month_label); comparison=st.sidebar.selectbox("Comparação",["FCST, FCST Envio OPL e Realizado","FCST e Realizado","FCST Envio OPL e Realizado"])
